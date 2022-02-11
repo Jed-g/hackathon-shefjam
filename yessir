@@ -9,16 +9,41 @@ function draw() {
   background(220);
   generateMap();
   player();
+  movement();
+  
 }
 
-function keyPressed() {
-  if (key == "ArrowLeft") {
-    playerX -= 10;
-  } else if (key == "ArrowRight") {
-    playerX += 10;
-  } else if (key == "ArrowDown") {
-    playerY += 1;
-  } else if (key == "ArrowUp") {
+function movement() {
+  if (keyIsDown(LEFT_ARROW)) {
+    playerX -= 1;
+  }
+  
+  if (keyIsDown(RIGHT_ARROW)) {
+    playerX += 1;
+  }
+  
+  if (keyIsDown(UP_ARROW)) {
     playerY -= 1;
-  } 
+  }
+  
+  if (keyIsDown(DOWN_ARROW)) {
+    playerY += 1;
+  }
+}
+
+function initialise() {
+   let coordX;
+}
+
+function generateMap() {
+  fill(0);
+  rect(0, 0, 1000, 10);
+  rect(0, 0, 10, 1000);
+  rect(0, 990, 1000, 10);
+  rect(990, 0, 10, 1000);
+}
+
+function player() {
+  fill(0);
+  ellipse(playerX, playerY, 10);
 }
