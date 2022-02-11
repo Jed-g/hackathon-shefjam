@@ -34,6 +34,18 @@ export default () => {
 		}
 	}
 
+	function aim(p5) {
+		p5.push();
+		
+		p5.translate(window.innerWidth/2, window.innerHeight/2);
+		
+		p5.rotate(atan2(mouseY - window.innerWidth /2, mouseX - window.innerHeight /2));
+		
+		p5.rect(-10, -10, 30, 20);
+		
+		p5.pop();
+	}
+
 	function generateMap(p5) {
 		p5.fill(0);
 		p5.rect(0, 0, MAP_SIZE_X_IN_PIXELS, 10);
@@ -58,6 +70,7 @@ export default () => {
 		generateMap(p5);
 		player(p5);
 		movement(p5);
+		aim(p5);
 	};
 
 	return <Sketch setup={setup} draw={draw} />;
