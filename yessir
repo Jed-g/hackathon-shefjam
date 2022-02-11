@@ -1,0 +1,24 @@
+let playerX = 500;
+let playerY = 500;
+
+function setup() {
+  createCanvas(1000, 1000);
+}
+
+function draw() {
+  background(220);
+  generateMap();
+  player();
+}
+
+function keyPressed() {
+  if (key == "ArrowLeft") {
+    playerX -= 10;
+  } else if (key == "ArrowRight") {
+    playerX += 10;
+  } else if (key == "ArrowDown") {
+    playerY += 1;
+  } else if (key == "ArrowUp") {
+    playerY -= 1;
+  } 
+}
