@@ -1,8 +1,8 @@
 import React from "react";
 import Sketch from "react-p5";
 
-	let x = 50;
-	let y = 50;
+let x = 50;
+let y = 50;
 
 export default () => {
 	const setup = (p5, canvasParentRef) => {
