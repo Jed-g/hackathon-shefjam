@@ -23,13 +23,14 @@ export default () => {
   });
 
   useEffect(() => {
-	  const mouseMovementHandler = (e) => {
-		mousePosition.current.X = e.clientX;
-		mousePosition.current.Y = e.clientY;
-	  }
-	  document.addEventListener("mousemove", mouseMovementHandler);
+    const mouseMovementHandler = (e) => {
+      mousePosition.current.X = e.clientX;
+      mousePosition.current.Y = e.clientY;
+    };
+    document.addEventListener("mousemove", mouseMovementHandler);
 
-	  return () => document.removeEventListener("mousemove", mouseMovementHandler);
+    return () =>
+      document.removeEventListener("mousemove", mouseMovementHandler);
   });
 
   function movement(p5) {
@@ -54,14 +55,13 @@ export default () => {
     p5.fill(0);
     p5.angleMode(p5.DEGREES);
 
+    p5.push();
 
-	p5.push();
-
-    // p5.translate(
-    //   Math.floor(window.innerWidth / 2),
-    //   Math.floor(window.innerHeight / 2)
-    // );
-
+    p5.translate(
+      Math.floor(window.innerWidth / 2),
+      Math.floor(window.innerHeight / 2)
+    );
+	
     if (mousePosition.current.X - Math.floor(window.innerWidth / 2) === 0) {
       if (mousePosition.current.Y - Math.floor(window.innerHeight / 2) >= 0) {
         p5.rotate(90);
@@ -77,22 +77,8 @@ export default () => {
       );
     }
 
-	p5.translate(
-		Math.floor(window.innerWidth / 2),
-		Math.floor(window.innerHeight / 2)
-	  );
-
-    p5.rect(
-      -25,
-      -25,
-      50,
-      50
-    );
-
-
-
-	p5.pop();
-
+    p5.rect(-25, -25, 50, 50);
+    p5.pop();
   }
 
   const setup = (p5, canvasParentRef) => {
