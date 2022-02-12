@@ -34,19 +34,19 @@ export default () => {
   });
 
   function movement(p5) {
-    if (p5.keyIsDown(p5.LEFT_ARROW)) {
+    if (p5.keyIsDown(65)) {
       playerPosition.current.X -= MOVEMENT_SPEED;
     }
 
-    if (p5.keyIsDown(p5.RIGHT_ARROW)) {
+    if (p5.keyIsDown(68)) {
       playerPosition.current.X += MOVEMENT_SPEED;
     }
 
-    if (p5.keyIsDown(p5.UP_ARROW)) {
+    if (p5.keyIsDown(87)) {
       playerPosition.current.Y -= MOVEMENT_SPEED;
     }
 
-    if (p5.keyIsDown(p5.DOWN_ARROW)) {
+    if (p5.keyIsDown(83)) {
       playerPosition.current.Y += MOVEMENT_SPEED;
     }
   }
