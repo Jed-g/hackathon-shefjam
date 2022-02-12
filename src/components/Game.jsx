@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import Sketch from "react-p5";
+import ProgressWidget from "./ProgressWidget";
 
 export default () => {
-  const MAP_SIZE_X_IN_PIXELS = 10000;
-  const MAP_SIZE_Y_IN_PIXELS = 10000;
+  const MAP_SIZE_X_IN_PIXELS = 8000;
+  const MAP_SIZE_Y_IN_PIXELS = 8000;
   const MOVEMENT_SPEED = 40;
   const BACKGROUND_SIZE_X_IN_PIXELS = 2893;
   const BACKGROUND_SIZE_Y_IN_PIXELS = 4340;
@@ -23,7 +24,7 @@ export default () => {
   const mouseDown = useRef(false);
 
   const playerPosition = useRef({
-    X: Math.floor(MAP_SIZE_X_IN_PIXELS / 2),
+    X: Math.floor(MAP_SIZE_X_IN_PIXELS / 2) - 1000,
     Y: Math.floor(MAP_SIZE_Y_IN_PIXELS / 2),
   });
 
@@ -220,12 +221,15 @@ export default () => {
   };
 
   return (
-    <Sketch
-      mousePressed={() => (mouseDown.current = true)}
-      mouseReleased={() => (mouseDown.current = false)}
-      preload={preload}
-      setup={setup}
-      draw={draw}
-    />
+    <>
+      <ProgressWidget waveCounter={waveCounter} timerInSeconds={timerInSeconds} />
+      <Sketch
+        mousePressed={() => (mouseDown.current = true)}
+        mouseReleased={() => (mouseDown.current = false)}
+        preload={preload}
+        setup={setup}
+        draw={draw}
+      />
+    </>
   );
 };
