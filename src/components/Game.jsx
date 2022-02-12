@@ -96,6 +96,43 @@ export default () => {
     p5.pop();
   }
 
+  let bullets = [];
+
+  function mouseClicked(p5) {
+    let v = p5.createVector(
+      mousePosition.current.X - Math.floor(window.innerWidth / 2), 
+      mousePosition.current.Y - Math.floor(window.innerHeight / 2));
+
+    bullets.push({
+      vector: v, 
+      positionX: Math.floor(window.innerWidth / 2), 
+      positionY : Math.floor(window.innerHeight / 2), 
+      timer : 60});
+  }
+
+  function drawBullets(p5) {
+    for (let i = 0; i < bullets.length; i++) {
+      const bullet = bullets[i];
+
+      p5.push();
+
+      p5.fill(255);
+
+      p5.ellipse(bullet.positionX -10, bullet.positionY -10, 20);
+
+      bullet.positionX += (bullet.vector.x/4);
+      bullet.positionY += (bullet.vector.y/4);
+
+      bullet.timer -= 1;
+      if (bullet.timer === 0) {
+        bullets.shift();
+      }
+
+      p5.pop();
+    };
+  };
+
+
   const setup = (p5, canvasParentRef) => {
     // use parent to render the canvas in this ref
     // (without that p5 will render the canvas outside of your component)
@@ -142,6 +179,10 @@ export default () => {
     movement(p5);
     drawMap(p5);
     drawPlayer(p5);
+
+    if (bullets !== undefined && bullets.length > 0) {
+      drawBullets(p5);
+    }
   };
 
   const img = useRef();
@@ -154,5 +195,5 @@ export default () => {
     );
   };
 
-  return <Sketch preload={preload} setup={setup} draw={draw} />;
+  return <Sketch mouseClicked={mouseClicked} preload={preload} setup={setup} draw={draw} />;
 };
