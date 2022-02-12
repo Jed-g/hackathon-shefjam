@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Sketch from "react-p5";
 import ProgressWidget from "./ProgressWidget";
 import AmmoCount from "./AmmoCount";
+import HpBar from "./HpBar";
 
 export default () => {
   const MAP_SIZE_X_IN_PIXELS = 8000;
@@ -231,6 +232,7 @@ export default () => {
         totalAmmoCount={totalAmmoCount}
         currentAmmoInMagazine={currentAmmoInMagazine}
       />
+      <HpBar hp={hp} />
       <Sketch
         mousePressed={() => (mouseDown.current = true)}
         mouseReleased={() => (mouseDown.current = false)}

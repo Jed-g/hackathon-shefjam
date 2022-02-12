@@ -5,10 +5,7 @@ const useStyles = makeStyles((theme) => ({
   root: {
     width: "10vw",
   },
-  waveCounter: {
-    fontSize: theme.typography.pxToRem(50),
-  },
-  timeLeft: {
+  ammoCount: {
     fontSize: theme.typography.pxToRem(50),
   },
 }));
@@ -28,7 +25,7 @@ export default ({ currentAmmoInMagazine, totalAmmoCount }) => {
       }}
       className={classes.root}
     >
-      <Typography className={classes.waveCounter}>
+      <Typography className={classes.ammoCount}>
         {currentAmmoInMagazine}/{totalAmmoCount}
       </Typography>
     </Paper>
