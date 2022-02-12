@@ -34,17 +34,17 @@ export default () => {
 		}
 	}
 
-	function aim(p5) {
-		p5.push();
+	// function aim(p5) {
+	// 	p5.push();
 		
-		p5.translate(window.innerWidth/2, window.innerHeight/2);
+	// 	p5.translate(window.innerWidth/2, window.innerHeight/2);
 		
-		p5.rotate(atan2(mouseY - window.innerWidth /2, mouseX - window.innerHeight /2));
+	// 	p5.rotate(atan2(mouseY - window.innerWidth /2, mouseX - window.innerHeight /2));
 		
-		p5.rect(-10, -10, 30, 20);
+	// 	p5.rect(-10, -10, 30, 20);
 		
-		p5.pop();
-	}
+	// 	p5.pop();
+	// }
 
 	function generateMap(p5) {
 		p5.fill(0);
@@ -62,15 +62,16 @@ export default () => {
 	const setup = (p5, canvasParentRef) => {
 		// use parent to render the canvas in this ref
 		// (without that p5 will render the canvas outside of your component)
-		p5.createCanvas(window.innerWidth, window.innerHeight).parent(canvasParentRef);
+		p5.createCanvas(window.innerWidth, window.innerHeight).parent(canvasParentRef);	
+		window.scrollTo(Math.floor(window.innerWidth/2), Math.floor(window.innerHeight/2));
 	};
 
 	const draw = (p5) => {
 		p5.background(220);
-		generateMap(p5);
-		player(p5);
-		movement(p5);
-		aim(p5);
+		// generateMap(p5);
+		// player(p5);
+		// movement(p5);
+		// aim(p5);
 	};
 
 	return <Sketch setup={setup} draw={draw} />;

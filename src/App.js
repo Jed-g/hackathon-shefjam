@@ -1,10 +1,18 @@
-import './App.css';
-import React from 'react';
-import Game from './components/Game';
+import "./App.css";
+import React from "react";
+import Game from "./components/Game";
 
 function App() {
   return (
-    <main>
+    <main
+      style={{
+        height: window.innerHeight * 2,
+        width: window.innerWidth * 2,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center"
+      }}
+    >
       <Game />
     </main>
   );
