@@ -8,12 +8,19 @@ export default () => {
   const BACKGROUND_SIZE_X_IN_PIXELS = 2893;
   const BACKGROUND_SIZE_Y_IN_PIXELS = 4340;
   const BORDER_WIDTH = 100;
+  const BULLET_SPEED = 20;
+  const BULLET_FIRING_SPEED_IN_FRAMES = 15;
 
   const [hp, setHp] = useState(100);
   const [totalAmmoCount, setTotalAmmoCount] = useState(180);
   const [currentAmmoInMagazine, setCurrentAmmoInMagazine] = useState(30);
   const [waveCounter, setWaveCounter] = useState(1);
   const [timerInSeconds, setTimerInSeconds] = useState(15);
+  const timeSinceLastBullet = useRef(BULLET_FIRING_SPEED_IN_FRAMES);
+
+  const bullets = useRef([]);
+
+  const mouseDown = useRef(false);
 
   const playerPosition = useRef({
     X: Math.floor(MAP_SIZE_X_IN_PIXELS / 2),
@@ -96,6 +103,57 @@ export default () => {
     p5.pop();
   }
 
+  function fireBullets(p5) {
+    if (timeSinceLastBullet.current < BULLET_FIRING_SPEED_IN_FRAMES) {
+      return;
+    } else {
+      timeSinceLastBullet.current = 0;
+    }
+
+    const vectorX = mousePosition.current.X - Math.floor(window.innerWidth / 2);
+    const vectorY =
+      mousePosition.current.Y - Math.floor(window.innerHeight / 2);
+
+    const vector = p5.createVector(
+      (BULLET_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY)),
+      (BULLET_SPEED * vectorY) / (Math.abs(vectorX) + Math.abs(vectorY))
+    );
+
+    bullets.current.push({
+      vector,
+      positionX: Math.floor(window.innerWidth / 2),
+      positionY: Math.floor(window.innerHeight / 2),
+    });
+  }
+
+  function drawBullets(p5) {
+    let i = 0;
+    while (i < bullets.current.length) {
+      const bullet = bullets.current[i];
+
+      p5.push();
+      p5.fill(255);
+
+      p5.ellipse(bullet.positionX, bullet.positionY, 20);
+
+      bullet.positionX += bullet.vector.x;
+      bullet.positionY += bullet.vector.y;
+
+      p5.pop();
+
+      if (
+        bullet.positionX > window.innerWidth ||
+        bullet.positionX < 0 ||
+        bullet.positionY < 0 ||
+        bullet.positionY > window.innerHeight
+      ) {
+        bullets.current.splice(i, 1);
+      } else {
+        i++;
+      }
+    }
+  }
+
   const setup = (p5, canvasParentRef) => {
     // use parent to render the canvas in this ref
     // (without that p5 will render the canvas outside of your component)
@@ -138,10 +196,17 @@ export default () => {
   };
 
   const draw = (p5) => {
+    timeSinceLastBullet.current++;
+    mouseDown.current && fireBullets(p5);
+
     p5.background(0);
     movement(p5);
     drawMap(p5);
     drawPlayer(p5);
+
+    if (bullets.current !== undefined && bullets.current.length > 0) {
+      drawBullets(p5);
+    }
   };
 
   const img = useRef();
@@ -154,5 +219,13 @@ export default () => {
     );
   };
 
-  return <Sketch preload={preload} setup={setup} draw={draw} />;
+  return (
+    <Sketch
+      mousePressed={() => (mouseDown.current = true)}
+      mouseReleased={() => (mouseDown.current = false)}
+      preload={preload}
+      setup={setup}
+      draw={draw}
+    />
+  );
 };
