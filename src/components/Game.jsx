@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Sketch from "react-p5";
 import ProgressWidget from "./ProgressWidget";
+import AmmoCount from "./AmmoCount";
 
 export default () => {
   const MAP_SIZE_X_IN_PIXELS = 8000;
@@ -222,7 +223,14 @@ export default () => {
 
   return (
     <>
-      <ProgressWidget waveCounter={waveCounter} timerInSeconds={timerInSeconds} />
+      <ProgressWidget
+        waveCounter={waveCounter}
+        timerInSeconds={timerInSeconds}
+      />
+      <AmmoCount
+        totalAmmoCount={totalAmmoCount}
+        currentAmmoInMagazine={currentAmmoInMagazine}
+      />
       <Sketch
         mousePressed={() => (mouseDown.current = true)}
         mouseReleased={() => (mouseDown.current = false)}
