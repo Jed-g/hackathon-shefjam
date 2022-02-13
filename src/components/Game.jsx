@@ -32,7 +32,7 @@ export default () => {
   const BULLET_FIRING_SPEED_IN_FRAMES = 15;
   const ZOMBIE_SPEED = 5;
   const FRAME_RATE = 60;
-  const ZOMBIE_FLANK = 10;
+  const ZOMBIE_FLANK = 35;
 
   const [hp, setHp] = useState(100);
   const [totalAmmoCount, setTotalAmmoCount] = useState(90);
