@@ -23,7 +23,7 @@ export default ({ waveCounter, timerInSeconds }) => {
       style={{
         padding: theme.spacing(2),
         position: "fixed",
-        right: 25,
+        left: 25,
         top: 25,
       }}
       className={classes.root}

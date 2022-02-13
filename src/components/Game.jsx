@@ -3,6 +3,16 @@ import Sketch from "react-p5";
 import ProgressWidget from "./ProgressWidget";
 import AmmoCount from "./AmmoCount";
 import HpBar from "./HpBar";
+import { Typography, makeStyles, useTheme } from "@material-ui/core";
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    width: "10vw",
+  },
+  message: {
+    fontSize: theme.typography.pxToRem(200),
+  },
+}));
 
 export default () => {
   const MAP_SIZE_X_IN_PIXELS = 8000;
@@ -20,6 +30,10 @@ export default () => {
   const [waveCounter, setWaveCounter] = useState(1);
   const [timerInSeconds, setTimerInSeconds] = useState(15);
   const timeSinceLastBullet = useRef(BULLET_FIRING_SPEED_IN_FRAMES);
+  const [overlayOpacity, setOverlayOpacity] = useState(0);
+
+  const theme = useTheme();
+  const classes = useStyles();
 
   const bullets = useRef([]);
 
@@ -44,7 +58,7 @@ export default () => {
 
     return () =>
       document.removeEventListener("mousemove", mouseMovementHandler);
-  });
+  }, []);
 
   function movement(p5) {
     // left
@@ -103,6 +117,9 @@ export default () => {
     }
 
     p5.rect(-25, -25, 50, 50);
+    p5.fill(255, 0, 0);
+    p5.rect(25, -5, 25, 10);
+
     p5.pop();
   }
 
@@ -222,6 +239,31 @@ export default () => {
     );
   };
 
+  const messageRef = useRef();
+  const [message, setMessage] = useState("");
+  const dispatchMessage = (message) => {
+    setMessage(message);
+    setOverlayOpacity(0.8);
+
+    messageRef.current.style.top = "50vh";
+
+    setTimeout(() => {
+      messageRef.current.style.top = "calc(100vh + 100px)";
+      setOverlayOpacity(0);
+
+      setTimeout(() => {
+        messageRef.current.style.transition = "none";
+        messageRef.current.style.top = "-100px";
+        setTimeout(() => {
+          messageRef.current.style.transition = "top 2s ease-in-out 0s";
+        }, 50);
+        messageRef.current.style.transitionDuration = "2s";
+      }, 2000);
+    }, 2500);
+  };
+  useEffect(() => {
+    setInterval(() => dispatchMessage("Wave 1"), 8000);
+  }, []);
   return (
     <>
       <ProgressWidget
@@ -240,6 +282,30 @@ export default () => {
         setup={setup}
         draw={draw}
       />
+      <div
+        style={{
+          position: "fixed",
+          transition: "opacity 2s ease-in-out 0s",
+          height: "100vh",
+          width: "100vw",
+          opacity: overlayOpacity,
+          backgroundColor: "black",
+          top: 0,
+        }}
+      ></div>
+      <Typography
+        className={classes.message}
+        ref={messageRef}
+        style={{
+          position: "fixed",
+          top: -100,
+          left: "50vw",
+          transform: "translate(-50%, -50%)",
+          transition: "top 2s ease-in-out 0s",
+        }}
+      >
+        {message}
+      </Typography>
     </>
   );
 };
