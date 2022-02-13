@@ -3,7 +3,7 @@ import { makeStyles, Typography, useTheme, Paper } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    width: "10vw",
+    width: 180,
   },
   ammoCount: {
     fontSize: theme.typography.pxToRem(50),

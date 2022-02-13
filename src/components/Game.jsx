@@ -152,8 +152,16 @@ export default () => {
 
   function moveZombiesToPlayer() {
     zombies.current.forEach((zombie) => {
-      const vectorX = playerPosition.current.X - zombie.positionX;
-      const vectorY = playerPosition.current.Y - zombie.positionY;
+      const vectorX =
+        playerPosition.current.X -
+        zombie.positionX +
+        Math.floor(Math.random() * 300) -
+        150;
+      const vectorY =
+        playerPosition.current.Y -
+        zombie.positionY +
+        Math.floor(Math.random() * 300) -
+        150;
 
       zombie.positionX +=
         (ZOMBIE_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY));
@@ -198,21 +206,19 @@ export default () => {
         zombieCoordsNotOffsetY +
         playerPosition.current.Y -
         Math.floor(window.innerHeight / 2),
-        health: 100,
+      health: 100,
     });
   }
 
   function drawZombie(p5) {
     zombies.current.forEach((zombie) => {
       p5.push();
-      
+
       if (zombie.health === 100) {
         p5.fill(0, 128, 0);
-      } 
-      else if (zombie.health === 66) {
+      } else if (zombie.health === 66) {
         p5.fill(255, 165, 0);
-      } 
-      else {
+      } else {
         p5.fill(255, 0, 0);
       }
 
@@ -295,9 +301,6 @@ export default () => {
       !firingEnabled.current
     ) {
       return;
-    } else if (currentAmmoInMagazine === 0) {
-      initializeReloading();
-      return;
     } else {
       timeSinceLastBullet.current = 0;
       setCurrentAmmoInMagazine((prev) => prev - 1);
@@ -317,6 +320,10 @@ export default () => {
       positionX: playerPosition.current.X,
       positionY: playerPosition.current.Y,
     });
+
+    if (currentAmmoInMagazine === 1) {
+      initializeReloading();
+    }
   }
 
   function drawBullets(p5) {
@@ -356,16 +363,20 @@ export default () => {
   }
 
   function checkBulletCollision(p5) {
-    let i = 0
+    let i = 0;
     while (i < zombies.current.length) {
       const zombie = zombies.current[i];
 
-      let j = 0
+      let j = 0;
       while (j < bullets.current.length) {
         const bullet = bullets.current[j];
 
-        if (zombie.positionX <= (bullet.positionX + 20) && (zombie.positionX + 50) >= bullet.positionX &&
-        zombie.positionY <= (bullet.positionY + 20) && (zombie.positionY + 50) >= bullet.positionY) {
+        if (
+          zombie.positionX <= bullet.positionX + 20 &&
+          zombie.positionX + 50 >= bullet.positionX &&
+          zombie.positionY <= bullet.positionY + 20 &&
+          zombie.positionY + 50 >= bullet.positionY
+        ) {
           zombie.health -= 34;
 
           if (zombie.health < 0) {
@@ -385,11 +396,15 @@ export default () => {
     while (i < zombies.current.length) {
       const zombie = zombies.current[i];
 
-      if (zombie.positionX <= (playerPosition.current.X +50) && (zombie.positionX +50) >= playerPosition.current.X &&
-      (zombie.positionY <= (playerPosition.current.Y +50) && (zombie.positionY +50) >= playerPosition.current.Y)) {
-        console.log("damage");
+      if (
+        zombie.positionX <= playerPosition.current.X + 50 &&
+        zombie.positionX + 50 >= playerPosition.current.X &&
+        zombie.positionY <= playerPosition.current.Y + 50 &&
+        zombie.positionY + 50 >= playerPosition.current.Y
+      ) {
+        setHp((prev) => prev - 1 / 15);
       }
-      
+
       i++;
     }
   }
