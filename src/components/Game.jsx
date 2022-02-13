@@ -17,11 +17,11 @@ const useStyles = makeStyles((theme) => ({
 export default () => {
   const MAP_SIZE_X_IN_PIXELS = 8000;
   const MAP_SIZE_Y_IN_PIXELS = 8000;
-  const MOVEMENT_SPEED = 40;
+  const MOVEMENT_SPEED = 10;
   const BACKGROUND_SIZE_X_IN_PIXELS = 2893;
   const BACKGROUND_SIZE_Y_IN_PIXELS = 4340;
   const BORDER_WIDTH = 100;
-  const BULLET_SPEED = 20;
+  const BULLET_SPEED = 30;
   const BULLET_FIRING_SPEED_IN_FRAMES = 15;
   const ZOMBIE_SPEED = 5;
 
@@ -68,6 +68,9 @@ export default () => {
     if (playerPosition.current.X > BORDER_WIDTH) {
       if (p5.keyIsDown(65)) {
         playerPosition.current.X -= MOVEMENT_SPEED;
+        bullets.current.forEach((bullet) => {
+          bullet.positionX += MOVEMENT_SPEED;
+        });
       }
     }
 
@@ -75,6 +78,9 @@ export default () => {
     if (playerPosition.current.X < MAP_SIZE_X_IN_PIXELS - BORDER_WIDTH) {
       if (p5.keyIsDown(68)) {
         playerPosition.current.X += MOVEMENT_SPEED;
+        bullets.current.forEach((bullet) => {
+          bullet.positionX -= MOVEMENT_SPEED;
+        });
       }
     }
 
@@ -82,6 +88,9 @@ export default () => {
     if (playerPosition.current.Y > BORDER_WIDTH) {
       if (p5.keyIsDown(87)) {
         playerPosition.current.Y -= MOVEMENT_SPEED;
+        bullets.current.forEach((bullet) => {
+          bullet.positionY += MOVEMENT_SPEED;
+        });
       }
     }
 
@@ -89,6 +98,9 @@ export default () => {
     if (playerPosition.current.Y < MAP_SIZE_Y_IN_PIXELS - BORDER_WIDTH) {
       if (p5.keyIsDown(83)) {
         playerPosition.current.Y += MOVEMENT_SPEED;
+        bullets.current.forEach((bullet) => {
+          bullet.positionY -= MOVEMENT_SPEED;
+        });
       }
     }
   }
@@ -149,20 +161,20 @@ export default () => {
   //   });
   // }
 
-  function updateZombieMovement() {
-    zombies.current.forEach((zombie) => {});
-  }
+  // function updateZombieMovement() {
+  //   zombies.current.forEach((zombie) => {});
+  // }
 
-  function drawZombie(p5) {
-    zombies.current.forEach((zombie) => {
-      p5.push();
-      p5.fill("green");
+  // function drawZombie(p5) {
+  //   zombies.current.forEach((zombie) => {
+  //     p5.push();
+  //     p5.fill("green");
 
-      p5.rect(zombie.positionX - 25, zombie.positionY - 25, 50, 50);
+  //     p5.rect(zombie.positionX - 25, zombie.positionY - 25, 50, 50);
 
-      p5.pop();
-    });
-  }
+  //     p5.pop();
+  //   });
+  // }
 
   function fireBullets(p5) {
     if (timeSinceLastBullet.current < BULLET_FIRING_SPEED_IN_FRAMES) {
@@ -182,8 +194,8 @@ export default () => {
 
     bullets.current.push({
       vector,
-      positionX: Math.floor(window.innerWidth / 2),
-      positionY: Math.floor(window.innerHeight / 2),
+      positionX: playerPosition.current.X,
+      positionY: playerPosition.current.Y,
     });
   }
 
@@ -195,7 +207,15 @@ export default () => {
       p5.push();
       p5.fill(255);
 
-      p5.ellipse(bullet.positionX, bullet.positionY, 20);
+      p5.ellipse(
+        bullet.positionX -
+          playerPosition.current.X +
+          Math.floor(window.innerWidth / 2),
+        bullet.positionY -
+          playerPosition.current.Y +
+          Math.floor(window.innerHeight / 2),
+        20
+      );
 
       bullet.positionX += bullet.vector.x;
       bullet.positionY += bullet.vector.y;
@@ -203,10 +223,10 @@ export default () => {
       p5.pop();
 
       if (
-        bullet.positionX > window.innerWidth ||
+        bullet.positionX > MAP_SIZE_X_IN_PIXELS ||
         bullet.positionX < 0 ||
         bullet.positionY < 0 ||
-        bullet.positionY > window.innerHeight
+        bullet.positionY > MAP_SIZE_Y_IN_PIXELS
       ) {
         bullets.current.splice(i, 1);
       } else {
@@ -269,9 +289,9 @@ export default () => {
       drawBullets(p5);
     }
 
-    if (zombies.current !== undefined && zombies.current.length > 0) {
-      drawZombie(p5);
-    }
+    // if (zombies.current !== undefined && zombies.current.length > 0) {
+    //   drawZombie(p5);
+    // }
   };
 
   const img = useRef();
