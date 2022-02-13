@@ -35,7 +35,7 @@ export default () => {
   const ZOMBIE_FLANK = 10;
 
   const [hp, setHp] = useState(100);
-  const [totalAmmoCount, setTotalAmmoCount] = useState(180);
+  const [totalAmmoCount, setTotalAmmoCount] = useState(90);
   const [currentAmmoInMagazine, setCurrentAmmoInMagazine] = useState(30);
   const [waveCounter, setWaveCounter] = useState(0);
   const [timerInSeconds, setTimerInSeconds] = useState(10);
@@ -304,11 +304,9 @@ export default () => {
     setTimeout(() => {
       if (totalAmmoCount - (30 - currentAmmoInMagazine) <= 0) {
         setTotalAmmoCount(0);
-        setCurrentAmmoInMagazine(
-          (prev) => prev + totalAmmoCount - (30 - currentAmmoInMagazine)
-        );
+        setCurrentAmmoInMagazine((prev) => prev + totalAmmoCount);
       } else {
-        setTotalAmmoCount((prev) => prev - (30 - currentAmmoInMagazine));
+        setTotalAmmoCount((prev) => prev - (30 - currentAmmoInMagazine) - 1);
         setCurrentAmmoInMagazine(30);
       }
 
@@ -340,10 +338,9 @@ export default () => {
     firingEnabled.current = false;
     zombies.current = [];
     zombiesSpawningEnabled.current = false;
-    zombiesSpawnIntervalInSeconds.current =
-      10000 / ((waveCounter + 1) * 200 + 5000);
+    zombiesSpawnIntervalInSeconds.current = 10000 / (waveCounter * 5000 + 5000);
 
-    setTotalAmmoCount(150 + (waveCounter + 1) * 30);
+    setTotalAmmoCount(60 + (waveCounter + 1) * 30);
     setCurrentAmmoInMagazine(30);
     setWaveCounter((prev) => {
       dispatchMessage(`Wave ${prev + 1}`, "slow");
@@ -357,7 +354,8 @@ export default () => {
   function fireBullets(p5) {
     if (
       timeSinceLastBullet.current < BULLET_FIRING_SPEED_IN_FRAMES ||
-      !firingEnabled.current
+      !firingEnabled.current ||
+      currentAmmoInMagazine === 0
     ) {
       return;
     } else {
