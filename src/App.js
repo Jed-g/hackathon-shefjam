@@ -3,13 +3,13 @@ import React from "react";
 import Game from "./components/Game";
 import {
   CssBaseline,
-  createMuiTheme,
+  createTheme,
   responsiveFontSizes,
   ThemeProvider,
 } from "@material-ui/core";
 
 const theme = responsiveFontSizes(
-  createMuiTheme({
+  createTheme({
     typography: {
       fontFamily: ["Syne Tactile", "cursive"].join(","),
     },

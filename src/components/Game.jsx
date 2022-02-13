@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import Sketch from "react-p5";
+import "p5/lib/addons/p5.sound";
 import ProgressWidget from "./ProgressWidget";
 import AmmoCount from "./AmmoCount";
 import HpBar from "./HpBar";
@@ -297,6 +298,7 @@ export default () => {
     }
 
     setReloadingIndicator(true);
+    reloadSound.current.play();
 
     setTimeout(() => {
       if (totalAmmoCount - (30 - currentAmmoInMagazine) <= 0) {
@@ -315,6 +317,7 @@ export default () => {
   }
 
   function startWave() {
+    cooldownMusic.current.stop();
     firingEnabled.current = true;
 
     zombiesSpawningEnabled.current = true;
@@ -326,6 +329,8 @@ export default () => {
   }
 
   function startCooldown() {
+    cooldownMusic.current.play();
+
     timeWhenLastZombieSpawned.current = -1;
     firingEnabled.current = false;
     zombies.current = [];
@@ -369,6 +374,8 @@ export default () => {
       positionX: playerPosition.current.X,
       positionY: playerPosition.current.Y,
     });
+
+    firingSound.current.play();
 
     if (currentAmmoInMagazine === 1) {
       initializeReloading();
@@ -452,7 +459,28 @@ export default () => {
         zombie.positionY + 50 >= playerPosition.current.Y
       ) {
         setHp((prev) => prev - 1 / 4);
-        if (hp - 1 / 15 <= 0) {
+        if (hp - 1 / 4 <= 0) {
+          if (
+            !(
+              zombieHit1.current.isPlaying() ||
+              zombieHit2.current.isPlaying() ||
+              zombieHit3.current.isPlaying()
+            )
+          ) {
+            switch (Math.floor(Math.random() * 3)) {
+              case 0:
+                zombieHit1.current.play();
+                break;
+              case 1:
+                zombieHit2.current.play();
+                break;
+              case 2:
+                zombieHit3.current.play();
+                break;
+              default:
+                break;
+            }
+          }
           gameOverMode.current = true;
           gameOver();
         }
@@ -560,7 +588,39 @@ export default () => {
   const img = useRef();
   const background = useRef();
 
+  const firingSound = useRef();
+  const cooldownMusic = useRef();
+  const reloadSound = useRef();
+
+  const zombieHit1 = useRef();
+  const zombieHit2 = useRef();
+  const zombieHit3 = useRef();
+
   const preload = (p5) => {
+    firingSound.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/shot.wav"
+    );
+
+    cooldownMusic.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/cooldown.mp3"
+    );
+
+    reloadSound.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/reload.wav"
+    );
+
+    zombieHit1.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/Zombie_hit_1.wav"
+    );
+
+    zombieHit2.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/Zombie_hit_2.wav"
+    );
+
+    zombieHit3.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/Zombie_hit_3.wav"
+    );
+
     img.current = p5.loadImage(process.env.PUBLIC_URL + "/img/map.png");
     background.current = p5.loadImage(
       process.env.PUBLIC_URL + "/img/star-background.jpg"
