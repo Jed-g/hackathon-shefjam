@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
 export default () => {
   const MAP_SIZE_X_IN_PIXELS = 8000;
   const MAP_SIZE_Y_IN_PIXELS = 8000;
-  const MOVEMENT_SPEED = 10;
+  const MOVEMENT_SPEED = 5;
   const BACKGROUND_SIZE_X_IN_PIXELS = 2893;
   const BACKGROUND_SIZE_Y_IN_PIXELS = 4340;
   const BORDER_WIDTH = 100;
