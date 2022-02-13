@@ -3,7 +3,12 @@ import Sketch from "react-p5";
 import ProgressWidget from "./ProgressWidget";
 import AmmoCount from "./AmmoCount";
 import HpBar from "./HpBar";
-import { Typography, makeStyles, useTheme } from "@material-ui/core";
+import {
+  Typography,
+  makeStyles,
+  useTheme,
+  CircularProgress,
+} from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -29,10 +34,11 @@ export default () => {
   const [hp, setHp] = useState(100);
   const [totalAmmoCount, setTotalAmmoCount] = useState(180);
   const [currentAmmoInMagazine, setCurrentAmmoInMagazine] = useState(30);
-  const [waveCounter, setWaveCounter] = useState(1);
+  const [waveCounter, setWaveCounter] = useState(0);
   const [timerInSeconds, setTimerInSeconds] = useState(90);
   const timeSinceLastBullet = useRef(BULLET_FIRING_SPEED_IN_FRAMES);
   const [overlayOpacity, setOverlayOpacity] = useState(0);
+  const [reloadingIndicator, setReloadingIndicator] = useState(false);
 
   const theme = useTheme();
   const classes = useStyles();
@@ -40,9 +46,11 @@ export default () => {
   const bullets = useRef([]);
 
   const zombies = useRef([]);
-  const zombiesSpawnIntervalInSeconds = useRef(10);
+  const zombiesSpawnIntervalInSeconds = useRef(999);
   const frameCounter = useRef(0);
-  const timeWhenLastZombieSpawned = useRef(timerInSeconds);
+  const timeWhenLastZombieSpawned = useRef(0);
+  const firingEnabled = useRef(false);
+  const zombiesSpawningEnabled = useRef(false);
 
   const mouseDown = useRef(false);
 
@@ -215,11 +223,74 @@ export default () => {
     });
   }
 
+  function initializeReloading() {
+    firingEnabled.current = false;
+
+    if (totalAmmoCount === 0 || currentAmmoInMagazine === 30) {
+      firingEnabled.current = true;
+      return;
+    }
+
+    setReloadingIndicator(true);
+
+    setTimeout(() => {
+      if (totalAmmoCount - (30 - currentAmmoInMagazine) <= 0) {
+        setTotalAmmoCount(0);
+        setCurrentAmmoInMagazine(
+          (prev) => prev + totalAmmoCount - (30 - currentAmmoInMagazine)
+        );
+      } else {
+        setTotalAmmoCount((prev) => prev - (30 - currentAmmoInMagazine));
+        setCurrentAmmoInMagazine(30);
+      }
+
+      firingEnabled.current = true;
+      setReloadingIndicator(false);
+    }, 2500);
+  }
+
+  function startWave() {
+    firingEnabled.current = true;
+
+    zombiesSpawningEnabled.current = true;
+    setTimerInSeconds(90);
+    timeWhenLastZombieSpawned.current = 999;
+    setTimeout(startCooldown, 90000);
+
+    dispatchMessage("Start!", "fast");
+  }
+
+  function startCooldown() {
+    timeWhenLastZombieSpawned.current = -1;
+    firingEnabled.current = false;
+    zombies.current = [];
+    zombiesSpawningEnabled.current = false;
+    zombiesSpawnIntervalInSeconds.current =
+      10000 / ((waveCounter + 1) * 200 + 5000);
+
+    setTotalAmmoCount(150 + (waveCounter + 1) * 30);
+    setCurrentAmmoInMagazine(30);
+    setWaveCounter((prev) => {
+      dispatchMessage(`Wave ${prev + 1}`, "slow");
+      return prev + 1;
+    });
+    setTimerInSeconds(10);
+    setHp(100);
+    setTimeout(startWave, 10000);
+  }
+
   function fireBullets(p5) {
-    if (timeSinceLastBullet.current < BULLET_FIRING_SPEED_IN_FRAMES) {
+    if (
+      timeSinceLastBullet.current < BULLET_FIRING_SPEED_IN_FRAMES ||
+      !firingEnabled.current
+    ) {
+      return;
+    } else if (currentAmmoInMagazine === 0) {
+      initializeReloading();
       return;
     } else {
       timeSinceLastBullet.current = 0;
+      setCurrentAmmoInMagazine((prev) => prev - 1);
     }
 
     const vectorX = mousePosition.current.X - Math.floor(window.innerWidth / 2);
@@ -275,8 +346,6 @@ export default () => {
   }
 
   const setup = (p5, canvasParentRef) => {
-    // use parent to render the canvas in this ref
-    // (without that p5 will render the canvas outside of your component)
     p5.createCanvas(window.innerWidth, window.innerHeight).parent(
       canvasParentRef
     );
@@ -285,6 +354,8 @@ export default () => {
       Math.floor(window.innerWidth / 2),
       Math.floor(window.innerHeight / 2)
     );
+
+    startCooldown();
   };
 
   const drawMap = (p5) => {
@@ -323,6 +394,13 @@ export default () => {
       setTimerInSeconds((prev) => prev - 1);
     }
 
+    if (firingEnabled.current) {
+      if (p5.keyIsDown(82)) {
+        firingEnabled.current = false;
+        initializeReloading();
+      }
+    }
+
     if (
       timeWhenLastZombieSpawned.current - timerInSeconds >
       zombiesSpawnIntervalInSeconds.current
@@ -359,15 +437,11 @@ export default () => {
 
   const messageRef = useRef();
   const [message, setMessage] = useState("");
-  const dispatchMessage = (message) => {
+  const dispatchMessage = (message, mode) => {
     setMessage(message);
-    setOverlayOpacity(0.8);
 
-    messageRef.current.style.top = "50vh";
-
-    setTimeout(() => {
+    if (mode === "fast") {
       messageRef.current.style.top = "calc(100vh + 100px)";
-      setOverlayOpacity(0);
 
       setTimeout(() => {
         messageRef.current.style.transition = "none";
@@ -375,9 +449,24 @@ export default () => {
         setTimeout(() => {
           messageRef.current.style.transition = "top 2s ease-in-out 0s";
         }, 50);
-        messageRef.current.style.transitionDuration = "2s";
       }, 2000);
-    }, 2500);
+    } else {
+      messageRef.current.style.top = "50vh";
+      setOverlayOpacity(0.8);
+
+      setTimeout(() => {
+        messageRef.current.style.top = "calc(100vh + 100px)";
+        setOverlayOpacity(0);
+
+        setTimeout(() => {
+          messageRef.current.style.transition = "none";
+          messageRef.current.style.top = "-100px";
+          setTimeout(() => {
+            messageRef.current.style.transition = "top 2s ease-in-out 0s";
+          }, 50);
+        }, 2000);
+      }, 3000);
+    }
   };
 
   return (
@@ -397,6 +486,15 @@ export default () => {
         preload={preload}
         setup={setup}
         draw={draw}
+      />
+      <CircularProgress
+        size={300}
+        style={{
+          display: reloadingIndicator ? "block" : "none",
+          position: "fixed",
+          top: "calc(50vh - 150px)",
+          left: "calc(50vw - 150px)",
+        }}
       />
       <div
         style={{
