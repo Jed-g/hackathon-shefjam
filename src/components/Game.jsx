@@ -23,6 +23,7 @@ export default () => {
   const BORDER_WIDTH = 100;
   const BULLET_SPEED = 20;
   const BULLET_FIRING_SPEED_IN_FRAMES = 15;
+  const ZOMBIE_SPEED = 5
 
   const [hp, setHp] = useState(100);
   const [totalAmmoCount, setTotalAmmoCount] = useState(180);
@@ -36,6 +37,8 @@ export default () => {
   const classes = useStyles();
 
   const bullets = useRef([]);
+
+  const zombies = useRef([]);
 
   const mouseDown = useRef(false);
 
@@ -121,6 +124,46 @@ export default () => {
     p5.rect(25, -5, 25, 10);
 
     p5.pop();
+  }
+
+  function zombieVector(p5) {
+    const vectorX = playerPosition.current.X - Math.floor(window.innerWidth / 2);
+    const vectorY = playerPosition.current.Y - Math.floor(window.innerHeight / 2);
+
+    const vector = p5.createVector(
+      (ZOMBIE_SPEED * -vectorX) / (Math.abs(vectorX) + Math.abs(vectorY)),
+      (ZOMBIE_SPEED * -vectorY) / (Math.abs(vectorX) + Math.abs(vectorY))
+    );
+    return vector
+  }
+
+  function spawnZombie(p5) {
+    const vector = zombieVector(p5);
+
+    zombies.current.push({
+      vector,
+      positionX: -1000,
+      positionY: -1000
+    });
+  }
+
+  function drawZombie(p5) {
+    let i = 0;
+    while (i < zombies.current.length) {
+      const zombie = zombies.current.i;
+
+      p5.push();
+      p5.fill('green');
+
+      p5.rect(zombie.positionX, zombie.positionY, 50, 50);
+
+      zombie.positionX += zombie.vector.x;
+      zombie.positionY += zombie.vector.y;
+
+      p5.pop();
+
+      zombie.vector = zombieVector(p5);
+    }
   }
 
   function fireBullets(p5) {
@@ -226,6 +269,10 @@ export default () => {
 
     if (bullets.current !== undefined && bullets.current.length > 0) {
       drawBullets(p5);
+    }
+
+    if (zombies.current !== undefined && zombies.current.length > 0) {
+      drawZombie(p5);
     }
   };
 
