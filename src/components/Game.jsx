@@ -142,18 +142,17 @@ export default () => {
     p5.pop();
   }
 
-  // function zombieVector(p5) {
-  //   const vectorX =
-  //     playerPosition.current.X - Math.floor(window.innerWidth / 2);
-  //   const vectorY =
-  //     playerPosition.current.Y - Math.floor(window.innerHeight / 2);
+  function moveZombiesToPlayer() {
+    zombies.current.forEach((zombie) => {
+      const vectorX = playerPosition.current.X - zombie.positionX;
+      const vectorY = playerPosition.current.Y - zombie.positionY;
 
-  //   const vector = p5.createVector(
-  //     (ZOMBIE_SPEED * -vectorX) / (Math.abs(vectorX) + Math.abs(vectorY)),
-  //     (ZOMBIE_SPEED * -vectorY) / (Math.abs(vectorX) + Math.abs(vectorY))
-  //   );
-  //   return vector;
-  // }
+      zombie.positionX +=
+        (ZOMBIE_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY));
+      zombie.positionY +=
+        (ZOMBIE_SPEED * vectorY) / (Math.abs(vectorX) + Math.abs(vectorY));
+    });
+  }
 
   function zombieCoordinatesGenerator() {
     const side = Math.floor(Math.random() * 4);
@@ -337,6 +336,7 @@ export default () => {
     movement(p5);
     drawMap(p5);
     drawPlayer(p5);
+    moveZombiesToPlayer();
 
     if (bullets.current !== undefined && bullets.current.length > 0) {
       drawBullets(p5);
