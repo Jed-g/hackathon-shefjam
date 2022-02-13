@@ -26,7 +26,7 @@ export default () => {
   const MAP_SIZE_Y_IN_PIXELS = 8000;
   const MOVEMENT_SPEED = 5;
   const BACKGROUND_SIZE_X_IN_PIXELS = 2893;
-  const BACKGROUND_SIZE_Y_IN_PIXELS = 4340;
+  const BACKGROUND_SIZE_Y_IN_PIXELS = 2893;
   const BORDER_WIDTH = 100;
   const BULLET_SPEED = 30;
   const BULLET_FIRING_SPEED_IN_FRAMES = 15;
@@ -81,43 +81,46 @@ export default () => {
   }, []);
 
   function movement(p5) {
-    // left
+    let moreThanOneKeyPressed = false;
+
+    if (
+      (p5.keyIsDown(65) && p5.keyIsDown(87)) ||
+      (p5.keyIsDown(68) && p5.keyIsDown(87)) ||
+      (p5.keyIsDown(68) && p5.keyIsDown(83)) ||
+      (p5.keyIsDown(65) && p5.keyIsDown(83))
+    ) {
+      moreThanOneKeyPressed = true;
+    }
+
+    const movementSpeed = moreThanOneKeyPressed
+      ? MOVEMENT_SPEED / Math.sqrt(2)
+      : MOVEMENT_SPEED;
+
     if (playerPosition.current.X > BORDER_WIDTH) {
+      // left
       if (p5.keyIsDown(65)) {
-        playerPosition.current.X -= MOVEMENT_SPEED;
-        bullets.current.forEach((bullet) => {
-          bullet.positionX += MOVEMENT_SPEED;
-        });
+        playerPosition.current.X -= movementSpeed;
       }
     }
 
     // right
     if (playerPosition.current.X < MAP_SIZE_X_IN_PIXELS - BORDER_WIDTH) {
       if (p5.keyIsDown(68)) {
-        playerPosition.current.X += MOVEMENT_SPEED;
-        bullets.current.forEach((bullet) => {
-          bullet.positionX -= MOVEMENT_SPEED;
-        });
+        playerPosition.current.X += movementSpeed;
       }
     }
 
     // top
     if (playerPosition.current.Y > BORDER_WIDTH) {
       if (p5.keyIsDown(87)) {
-        playerPosition.current.Y -= MOVEMENT_SPEED;
-        bullets.current.forEach((bullet) => {
-          bullet.positionY += MOVEMENT_SPEED;
-        });
+        playerPosition.current.Y -= movementSpeed;
       }
     }
 
     // bottom
     if (playerPosition.current.Y < MAP_SIZE_Y_IN_PIXELS - BORDER_WIDTH) {
       if (p5.keyIsDown(83)) {
-        playerPosition.current.Y += MOVEMENT_SPEED;
-        bullets.current.forEach((bullet) => {
-          bullet.positionY -= MOVEMENT_SPEED;
-        });
+        playerPosition.current.Y += movementSpeed;
       }
     }
   }
