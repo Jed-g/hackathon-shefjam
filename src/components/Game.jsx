@@ -30,6 +30,7 @@ export default () => {
   const BULLET_FIRING_SPEED_IN_FRAMES = 15;
   const ZOMBIE_SPEED = 5;
   const FRAME_RATE = 60;
+  const ZOMBIE_FLANK = 5;
 
   const [hp, setHp] = useState(100);
   const [totalAmmoCount, setTotalAmmoCount] = useState(180);
@@ -164,10 +165,50 @@ export default () => {
         Math.floor(Math.random() * 300) -
         150;
 
-      zombie.positionX +=
+      let dist = Math.sqrt(
+        Math.pow((Math.floor(Math.abs(playerPosition.current.X - zombie.positionX))), 2) +
+        Math.pow((Math.floor(Math.abs(playerPosition.current.Y - zombie.positionY))), 2)
+      );
+
+      if (zombie.flankCounter === 0 || dist < 200) {
+        zombie.positionX +=
         (ZOMBIE_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY));
-      zombie.positionY +=
+        zombie.positionY +=
         (ZOMBIE_SPEED * vectorY) / (Math.abs(vectorX) + Math.abs(vectorY));
+
+        let r = Math.floor(Math.random() * 100)
+
+        if (r > 90) {
+          zombie.flankCounter = 10;
+        }
+        if (r < 10) {
+          zombie.flankCounter = -10;
+        }
+      }
+      else {
+        let m = 0;
+        if (zombie.flankCounter > 0) {
+          m = ZOMBIE_FLANK;
+          zombie.flankCounter -= 1;
+        }
+        else {
+          m = ZOMBIE_FLANK;
+          zombie.flankCounter += 1;
+        }
+
+        if (Math.abs(vectorX) > Math.abs(vectorY)) {
+          zombie.positionX +=
+         (ZOMBIE_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY));
+          zombie.positionY +=
+          (ZOMBIE_SPEED * vectorY) / (Math.abs(vectorX) + Math.abs(vectorY)) + m;
+        }
+        else {
+          zombie.positionX +=
+          (ZOMBIE_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY)) + m;
+          zombie.positionY +=
+          (ZOMBIE_SPEED * vectorY) / (Math.abs(vectorX) + Math.abs(vectorY));
+        }
+      }
     });
   }
 
@@ -208,6 +249,7 @@ export default () => {
         playerPosition.current.Y -
         Math.floor(window.innerHeight / 2),
       health: 100,
+      flankCounter: 0,
     });
   }
 
@@ -403,7 +445,7 @@ export default () => {
         zombie.positionY <= playerPosition.current.Y + 50 &&
         zombie.positionY + 50 >= playerPosition.current.Y
       ) {
-        setHp((prev) => prev - 1 / 15);
+        setHp((prev) => prev - 1 / 4);
         if (hp - 1 / 15 <= 0) {
           gameOverMode.current = true;
           gameOver();
@@ -412,6 +454,15 @@ export default () => {
 
       i++;
     }
+  }
+
+  function drawCursor(p5) {
+    p5.push();
+    p5.fill(0, 0, 255);
+
+    p5.ellipse(mousePosition.current.X, mousePosition.current.Y, 10, 10);
+
+    p5.pop();
   }
 
   const setup = (p5, canvasParentRef) => {
@@ -496,6 +547,7 @@ export default () => {
 
       checkBulletCollision(p5);
       checkDamage(p5);
+      drawCursor(p5);
     }
   };
 
