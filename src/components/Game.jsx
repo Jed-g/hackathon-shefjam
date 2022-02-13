@@ -182,7 +182,7 @@ export default () => {
           )
       );
 
-      if (zombie.flankCounter === 0 || dist < 200) {
+      if (zombie.flankCounter === 0 || dist < 100) {
         zombie.positionX +=
           (ZOMBIE_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY));
         zombie.positionY +=
