@@ -261,9 +261,7 @@ export default () => {
       }, 2000);
     }, 2500);
   };
-  useEffect(() => {
-    setInterval(() => dispatchMessage("Wave 1"), 8000);
-  }, []);
+
   return (
     <>
       <ProgressWidget
