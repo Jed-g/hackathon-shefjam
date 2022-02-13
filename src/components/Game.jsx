@@ -209,13 +209,29 @@ export default () => {
         if (Math.abs(vectorX) > Math.abs(vectorY)) {
           zombie.positionX +=
             (ZOMBIE_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY));
-          zombie.positionY +=
-            (ZOMBIE_SPEED * vectorY) / (Math.abs(vectorX) + Math.abs(vectorY)) +
-            m;
+          if (vectorY <= 0) {
+            zombie.positionY +=
+              (ZOMBIE_SPEED * vectorY) /
+                (Math.abs(vectorX) + Math.abs(vectorY)) -
+              m;
+          } else {
+            zombie.positionY +=
+              (ZOMBIE_SPEED * vectorY) /
+                (Math.abs(vectorX) + Math.abs(vectorY)) +
+              m;
+          }
         } else {
-          zombie.positionX +=
-            (ZOMBIE_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY)) +
-            m;
+          if (vectorX <= 0) {
+            zombie.positionX +=
+              (ZOMBIE_SPEED * vectorX) /
+                (Math.abs(vectorX) + Math.abs(vectorY)) -
+              m;
+          } else {
+            zombie.positionX +=
+              (ZOMBIE_SPEED * vectorX) /
+                (Math.abs(vectorX) + Math.abs(vectorY)) +
+              m;
+          }
           zombie.positionY +=
             (ZOMBIE_SPEED * vectorY) / (Math.abs(vectorX) + Math.abs(vectorY));
         }
