@@ -190,13 +190,23 @@ export default () => {
         zombieCoordsNotOffsetY +
         playerPosition.current.Y -
         Math.floor(window.innerHeight / 2),
+        health: 100,
     });
   }
 
   function drawZombie(p5) {
     zombies.current.forEach((zombie) => {
       p5.push();
-      p5.fill("green");
+      
+      if (zombie.health === 100) {
+        p5.fill(0, 128, 0);
+      } 
+      else if (zombie.health === 66) {
+        p5.fill(255, 165, 0);
+      } 
+      else {
+        p5.fill(255, 0, 0);
+      }
 
       p5.rect(
         zombie.positionX -
@@ -274,6 +284,31 @@ export default () => {
     }
   }
 
+  function checkBulletCollision(p5) {
+    let i = 0
+    while (i < zombies.current.length) {
+      const zombie = zombies.current[i];
+
+      let j = 0
+      while (j < bullets.current.length) {
+        const bullet = bullets.current[j];
+
+        if (zombie.positionX <= (bullet.positionX + 20) && (zombie.positionX + 50) >= bullet.positionX &&
+        zombie.positionY <= (bullet.positionY + 20) && (zombie.positionY + 50) >= bullet.positionY) {
+          zombie.health -= 34;
+
+          if (zombie.health < 0) {
+            zombies.current.splice(i, 1);
+          }
+
+          bullets.current.splice(j, 1);
+        }
+        j++;
+      }
+      i++;
+    }
+  }
+
   const setup = (p5, canvasParentRef) => {
     // use parent to render the canvas in this ref
     // (without that p5 will render the canvas outside of your component)
@@ -345,6 +380,8 @@ export default () => {
     if (zombies.current !== undefined && zombies.current.length > 0) {
       drawZombie(p5);
     }
+
+    checkBulletCollision(p5);
   };
 
   const img = useRef();
