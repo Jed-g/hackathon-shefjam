@@ -38,7 +38,7 @@ export default () => {
   const [totalAmmoCount, setTotalAmmoCount] = useState(180);
   const [currentAmmoInMagazine, setCurrentAmmoInMagazine] = useState(30);
   const [waveCounter, setWaveCounter] = useState(0);
-  const [timerInSeconds, setTimerInSeconds] = useState(90);
+  const [timerInSeconds, setTimerInSeconds] = useState(10);
   const timeSinceLastBullet = useRef(BULLET_FIRING_SPEED_IN_FRAMES);
   const [overlayOpacity, setOverlayOpacity] = useState(0);
   const [reloadingIndicator, setReloadingIndicator] = useState(false);
@@ -55,6 +55,7 @@ export default () => {
   const firingEnabled = useRef(false);
   const zombiesSpawningEnabled = useRef(false);
   const gameOverMode = useRef(false);
+  const framesSinceLastZombieSound = useRef(999);
 
   const mouseDown = useRef(false);
 
@@ -318,6 +319,7 @@ export default () => {
 
   function startWave() {
     cooldownMusic.current.stop();
+    waveMusic.current.play();
     firingEnabled.current = true;
 
     zombiesSpawningEnabled.current = true;
@@ -329,7 +331,10 @@ export default () => {
   }
 
   function startCooldown() {
+    frameCounter.current = 0;
+    waveMusic.current.stop();
     cooldownMusic.current.play();
+    framesSinceLastZombieSound.current = 999;
 
     timeWhenLastZombieSpawned.current = -1;
     firingEnabled.current = false;
@@ -433,9 +438,11 @@ export default () => {
           zombie.positionY <= bullet.positionY + 20 &&
           zombie.positionY + 50 >= bullet.positionY
         ) {
+          zombieShot.current.play();
           zombie.health -= 34;
 
           if (zombie.health < 0) {
+            zombieDead.current.play();
             zombies.current.splice(i, 1);
           }
 
@@ -459,28 +466,25 @@ export default () => {
         zombie.positionY + 50 >= playerPosition.current.Y
       ) {
         setHp((prev) => prev - 1 / 4);
-        if (hp - 1 / 4 <= 0) {
-          if (
-            !(
-              zombieHit1.current.isPlaying() ||
-              zombieHit2.current.isPlaying() ||
-              zombieHit3.current.isPlaying()
-            )
-          ) {
-            switch (Math.floor(Math.random() * 3)) {
-              case 0:
-                zombieHit1.current.play();
-                break;
-              case 1:
-                zombieHit2.current.play();
-                break;
-              case 2:
-                zombieHit3.current.play();
-                break;
-              default:
-                break;
-            }
+
+        if (framesSinceLastZombieSound.current > FRAME_RATE / 4) {
+          framesSinceLastZombieSound.current = 0;
+          switch (Math.floor(Math.random() * 3)) {
+            case 0:
+              zombieHit1.current.play();
+              break;
+            case 1:
+              zombieHit2.current.play();
+              break;
+            case 2:
+              zombieHit3.current.play();
+              break;
+            default:
+              break;
           }
+        }
+
+        if (hp - 1 / 4 <= 0) {
           gameOverMode.current = true;
           gameOver();
         }
@@ -508,8 +512,11 @@ export default () => {
       Math.floor(window.innerWidth / 2),
       Math.floor(window.innerHeight / 2)
     );
-
-    startCooldown();
+    setReloadingIndicator(true);
+    setTimeout(() => {
+      setReloadingIndicator(false);
+      startCooldown();
+    }, 3000);
   };
 
   const drawMap = (p5) => {
@@ -542,6 +549,7 @@ export default () => {
 
   const draw = (p5) => {
     if (!gameOverMode.current) {
+      framesSinceLastZombieSound.current++;
       timeSinceLastBullet.current++;
       mouseDown.current && fireBullets(p5);
 
@@ -596,6 +604,11 @@ export default () => {
   const zombieHit2 = useRef();
   const zombieHit3 = useRef();
 
+  const zombieShot = useRef();
+  const zombieDead = useRef();
+
+  const waveMusic = useRef();
+
   const preload = (p5) => {
     firingSound.current = p5.loadSound(
       process.env.PUBLIC_URL + "/sounds/shot.wav"
@@ -619,6 +632,18 @@ export default () => {
 
     zombieHit3.current = p5.loadSound(
       process.env.PUBLIC_URL + "/sounds/Zombie_hit_3.wav"
+    );
+
+    waveMusic.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/wave.mp3"
+    );
+
+    zombieShot.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/Zombie_shot.wav"
+    );
+
+    zombieDead.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/Zombie_dead.wav"
     );
 
     img.current = p5.loadImage(process.env.PUBLIC_URL + "/img/map.png");
