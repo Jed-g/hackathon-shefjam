@@ -380,6 +380,20 @@ export default () => {
     }
   }
 
+  function checkDamage(p5) {
+    let i = 0;
+    while (i < zombies.current.length) {
+      const zombie = zombies.current[i];
+
+      if (zombie.positionX <= (playerPosition.current.X +50) && (zombie.positionX +50) >= playerPosition.current.X &&
+      (zombie.positionY <= (playerPosition.current.Y +50) && (zombie.positionY +50) >= playerPosition.current.Y)) {
+        console.log("damage");
+      }
+      
+      i++;
+    }
+  }
+
   const setup = (p5, canvasParentRef) => {
     p5.createCanvas(window.innerWidth, window.innerHeight).parent(
       canvasParentRef
@@ -460,6 +474,7 @@ export default () => {
     }
 
     checkBulletCollision(p5);
+    checkDamage(p5);
   };
 
   const img = useRef();
