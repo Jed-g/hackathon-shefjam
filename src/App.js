@@ -11,10 +11,7 @@ import {
 const theme = responsiveFontSizes(
   createMuiTheme({
     typography: {
-      fontFamily: [
-        'Syne Tactile',
-        'cursive',
-      ].join(','),
+      fontFamily: ["Syne Tactile", "cursive"].join(","),
     },
     palette: {
       primary: {

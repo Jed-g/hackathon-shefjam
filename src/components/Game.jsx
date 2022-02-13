@@ -15,7 +15,7 @@ const useStyles = makeStyles((theme) => ({
     width: "10vw",
   },
   message: {
-    fontSize: theme.typography.pxToRem(200),
+    fontSize: theme.typography.pxToRem(150),
   },
 }));
 
@@ -51,6 +51,7 @@ export default () => {
   const timeWhenLastZombieSpawned = useRef(0);
   const firingEnabled = useRef(false);
   const zombiesSpawningEnabled = useRef(false);
+  const gameOverMode = useRef(false);
 
   const mouseDown = useRef(false);
 
@@ -403,6 +404,10 @@ export default () => {
         zombie.positionY + 50 >= playerPosition.current.Y
       ) {
         setHp((prev) => prev - 1 / 15);
+        if (hp - 1 / 15 <= 0) {
+          gameOverMode.current = true;
+          gameOver();
+        }
       }
 
       i++;
@@ -451,45 +456,47 @@ export default () => {
   };
 
   const draw = (p5) => {
-    timeSinceLastBullet.current++;
-    mouseDown.current && fireBullets(p5);
+    if (!gameOverMode.current) {
+      timeSinceLastBullet.current++;
+      mouseDown.current && fireBullets(p5);
 
-    if (frameCounter.current % FRAME_RATE == 0) {
-      setTimerInSeconds((prev) => prev - 1);
-    }
-
-    if (firingEnabled.current) {
-      if (p5.keyIsDown(82)) {
-        firingEnabled.current = false;
-        initializeReloading();
+      if (frameCounter.current % FRAME_RATE == 0) {
+        setTimerInSeconds((prev) => prev - 1);
       }
+
+      if (firingEnabled.current) {
+        if (p5.keyIsDown(82)) {
+          firingEnabled.current = false;
+          initializeReloading();
+        }
+      }
+
+      if (
+        timeWhenLastZombieSpawned.current - timerInSeconds >
+        zombiesSpawnIntervalInSeconds.current
+      ) {
+        spawnZombie();
+      }
+
+      frameCounter.current++;
+
+      p5.background(0);
+      movement(p5);
+      drawMap(p5);
+      drawPlayer(p5);
+      moveZombiesToPlayer();
+
+      if (bullets.current !== undefined && bullets.current.length > 0) {
+        drawBullets(p5);
+      }
+
+      if (zombies.current !== undefined && zombies.current.length > 0) {
+        drawZombie(p5);
+      }
+
+      checkBulletCollision(p5);
+      checkDamage(p5);
     }
-
-    if (
-      timeWhenLastZombieSpawned.current - timerInSeconds >
-      zombiesSpawnIntervalInSeconds.current
-    ) {
-      spawnZombie();
-    }
-
-    frameCounter.current++;
-
-    p5.background(0);
-    movement(p5);
-    drawMap(p5);
-    drawPlayer(p5);
-    moveZombiesToPlayer();
-
-    if (bullets.current !== undefined && bullets.current.length > 0) {
-      drawBullets(p5);
-    }
-
-    if (zombies.current !== undefined && zombies.current.length > 0) {
-      drawZombie(p5);
-    }
-
-    checkBulletCollision(p5);
-    checkDamage(p5);
   };
 
   const img = useRef();
@@ -500,6 +507,15 @@ export default () => {
     background.current = p5.loadImage(
       process.env.PUBLIC_URL + "/img/star-background.jpg"
     );
+  };
+
+  const gameOver = () => {
+    dispatchMessage("Game over :(", "slow");
+    setTimeout(() => {
+      setWaveCounter(0);
+      gameOverMode.current = false;
+      startCooldown();
+    }, 6000);
   };
 
   const messageRef = useRef();
@@ -581,6 +597,8 @@ export default () => {
           position: "fixed",
           top: -100,
           left: "50vw",
+          width: "100vw",
+          textAlign: "center",
           transform: "translate(-50%, -50%)",
           transition: "top 2s ease-in-out 0s",
         }}
