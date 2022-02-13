@@ -9,6 +9,7 @@ import {
   useTheme,
   CircularProgress,
 } from "@material-ui/core";
+import Controls from "./Controls";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -166,17 +167,23 @@ export default () => {
         150;
 
       let dist = Math.sqrt(
-        Math.pow((Math.floor(Math.abs(playerPosition.current.X - zombie.positionX))), 2) +
-        Math.pow((Math.floor(Math.abs(playerPosition.current.Y - zombie.positionY))), 2)
+        Math.pow(
+          Math.floor(Math.abs(playerPosition.current.X - zombie.positionX)),
+          2
+        ) +
+          Math.pow(
+            Math.floor(Math.abs(playerPosition.current.Y - zombie.positionY)),
+            2
+          )
       );
 
       if (zombie.flankCounter === 0 || dist < 200) {
         zombie.positionX +=
-        (ZOMBIE_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY));
+          (ZOMBIE_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY));
         zombie.positionY +=
-        (ZOMBIE_SPEED * vectorY) / (Math.abs(vectorX) + Math.abs(vectorY));
+          (ZOMBIE_SPEED * vectorY) / (Math.abs(vectorX) + Math.abs(vectorY));
 
-        let r = Math.floor(Math.random() * 100)
+        let r = Math.floor(Math.random() * 100);
 
         if (r > 95) {
           zombie.flankCounter = 10;
@@ -184,29 +191,28 @@ export default () => {
         if (r < 5) {
           zombie.flankCounter = -10;
         }
-      }
-      else {
+      } else {
         let m = 0;
         if (zombie.flankCounter > 0) {
           m = ZOMBIE_FLANK;
           zombie.flankCounter -= 1;
-        }
-        else {
+        } else {
           m = ZOMBIE_FLANK;
           zombie.flankCounter += 1;
         }
 
         if (Math.abs(vectorX) > Math.abs(vectorY)) {
           zombie.positionX +=
-         (ZOMBIE_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY));
+            (ZOMBIE_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY));
           zombie.positionY +=
-          (ZOMBIE_SPEED * vectorY) / (Math.abs(vectorX) + Math.abs(vectorY)) + m;
-        }
-        else {
+            (ZOMBIE_SPEED * vectorY) / (Math.abs(vectorX) + Math.abs(vectorY)) +
+            m;
+        } else {
           zombie.positionX +=
-          (ZOMBIE_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY)) + m;
+            (ZOMBIE_SPEED * vectorX) / (Math.abs(vectorX) + Math.abs(vectorY)) +
+            m;
           zombie.positionY +=
-          (ZOMBIE_SPEED * vectorY) / (Math.abs(vectorX) + Math.abs(vectorY));
+            (ZOMBIE_SPEED * vectorY) / (Math.abs(vectorX) + Math.abs(vectorY));
         }
       }
     });
@@ -657,6 +663,7 @@ export default () => {
       >
         {message}
       </Typography>
+      <Controls />
     </>
   );
 };
