@@ -24,12 +24,13 @@ export default () => {
   const BULLET_SPEED = 30;
   const BULLET_FIRING_SPEED_IN_FRAMES = 15;
   const ZOMBIE_SPEED = 5;
+  const FRAME_RATE = 60;
 
   const [hp, setHp] = useState(100);
   const [totalAmmoCount, setTotalAmmoCount] = useState(180);
   const [currentAmmoInMagazine, setCurrentAmmoInMagazine] = useState(30);
   const [waveCounter, setWaveCounter] = useState(1);
-  const [timerInSeconds, setTimerInSeconds] = useState(15);
+  const [timerInSeconds, setTimerInSeconds] = useState(90);
   const timeSinceLastBullet = useRef(BULLET_FIRING_SPEED_IN_FRAMES);
   const [overlayOpacity, setOverlayOpacity] = useState(0);
 
@@ -39,6 +40,9 @@ export default () => {
   const bullets = useRef([]);
 
   const zombies = useRef([]);
+  const zombiesSpawnIntervalInSeconds = useRef(10);
+  const frameCounter = useRef(0);
+  const timeWhenLastZombieSpawned = useRef(timerInSeconds);
 
   const mouseDown = useRef(false);
 
@@ -151,30 +155,66 @@ export default () => {
   //   return vector;
   // }
 
-  // function spawnZombie(p5) {
-  //   const vector = zombieVector(p5);
+  function zombieCoordinatesGenerator() {
+    const side = Math.floor(Math.random() * 4);
 
-  //   zombies.current.push({
-  //     vector,
-  //     positionX: -1000,
-  //     positionY: -1000
-  //   });
-  // }
+    switch (side) {
+      case 0:
+        return [Math.floor(Math.random() * window.innerWidth), 0];
+      case 1:
+        return [
+          window.innerWidth,
+          Math.floor(Math.random() * window.innerHeight),
+        ];
+      case 2:
+        return [
+          Math.floor(Math.random() * window.innerWidth),
+          window.innerHeight,
+        ];
+      case 3:
+        return [0, Math.floor(Math.random() * window.innerHeight)];
+      default:
+        return;
+    }
+  }
 
-  // function updateZombieMovement() {
-  //   zombies.current.forEach((zombie) => {});
-  // }
+  function spawnZombie() {
+    timeWhenLastZombieSpawned.current = timerInSeconds;
+    const [zombieCoordsNotOffsetX, zombieCoordsNotOffsetY] =
+      zombieCoordinatesGenerator();
+    zombies.current.push({
+      positionX:
+        zombieCoordsNotOffsetX +
+        playerPosition.current.X -
+        Math.floor(window.innerWidth / 2),
+      positionY:
+        zombieCoordsNotOffsetY +
+        playerPosition.current.Y -
+        Math.floor(window.innerHeight / 2),
+    });
+  }
 
-  // function drawZombie(p5) {
-  //   zombies.current.forEach((zombie) => {
-  //     p5.push();
-  //     p5.fill("green");
+  function drawZombie(p5) {
+    zombies.current.forEach((zombie) => {
+      p5.push();
+      p5.fill("green");
 
-  //     p5.rect(zombie.positionX - 25, zombie.positionY - 25, 50, 50);
+      p5.rect(
+        zombie.positionX -
+          playerPosition.current.X +
+          Math.floor(window.innerWidth / 2) -
+          25,
+        zombie.positionY -
+          playerPosition.current.Y +
+          Math.floor(window.innerHeight / 2) -
+          25,
+        50,
+        50
+      );
 
-  //     p5.pop();
-  //   });
-  // }
+      p5.pop();
+    });
+  }
 
   function fireBullets(p5) {
     if (timeSinceLastBullet.current < BULLET_FIRING_SPEED_IN_FRAMES) {
@@ -241,7 +281,7 @@ export default () => {
     p5.createCanvas(window.innerWidth, window.innerHeight).parent(
       canvasParentRef
     );
-    p5.frameRate(60);
+    p5.frameRate(FRAME_RATE);
     window.scrollTo(
       Math.floor(window.innerWidth / 2),
       Math.floor(window.innerHeight / 2)
@@ -280,6 +320,19 @@ export default () => {
     timeSinceLastBullet.current++;
     mouseDown.current && fireBullets(p5);
 
+    if (frameCounter.current % FRAME_RATE == 0) {
+      setTimerInSeconds((prev) => prev - 1);
+    }
+
+    if (
+      timeWhenLastZombieSpawned.current - timerInSeconds >
+      zombiesSpawnIntervalInSeconds.current
+    ) {
+      spawnZombie();
+    }
+
+    frameCounter.current++;
+
     p5.background(0);
     movement(p5);
     drawMap(p5);
@@ -289,9 +342,9 @@ export default () => {
       drawBullets(p5);
     }
 
-    // if (zombies.current !== undefined && zombies.current.length > 0) {
-    //   drawZombie(p5);
-    // }
+    if (zombies.current !== undefined && zombies.current.length > 0) {
+      drawZombie(p5);
+    }
   };
 
   const img = useRef();
