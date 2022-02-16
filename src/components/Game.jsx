@@ -412,23 +412,20 @@ export default () => {
   function startCooldown() {
     if (gameOverMode.current) {
       setTotalAmmoCount(90);
-      setCurrentAmmoInMagazine(30);
       dispatchMessage("Wave 1", "slow");
       setWaveCounter(1);
-      setTimerInSeconds(10);
-      setHp(100);
-      setTimeout(startWave, 10000);
     } else {
-      setTotalAmmoCount(60 + (waveCounter + 1) * 30);
-      setCurrentAmmoInMagazine(30);
       setWaveCounter((prev) => {
+        setTotalAmmoCount(60 + (prev + 1) * 30);
         dispatchMessage(`Wave ${prev + 1}`, "slow");
         return prev + 1;
       });
-      setTimerInSeconds(10);
-      setHp(100);
-      setTimeout(startWave, 10000);
     }
+
+    setTimeout(startWave, 10000);
+    setTimerInSeconds(10);
+    setHp(100);
+    setCurrentAmmoInMagazine(30);
 
     frameCounter.current = 0;
     waveMusic.current.stop();
@@ -691,7 +688,7 @@ export default () => {
         timeSinceLastBullet.current++;
         mouseDown.current && fireBullets(p5);
 
-        if (frameCounter.current % FRAME_RATE == 0) {
+        if (frameCounter.current % FRAME_RATE === 0) {
           setTimerInSeconds((prev) => prev - 1);
         }
 

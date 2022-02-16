@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  makeStyles,
-  Typography,
-  useTheme,
-  Paper,
-  LinearProgress,
-} from "@material-ui/core";
+import { makeStyles, useTheme, Paper, LinearProgress } from "@material-ui/core";
 
 const useStyles = makeStyles(() => ({
   root: {
