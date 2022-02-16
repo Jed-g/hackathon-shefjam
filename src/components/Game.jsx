@@ -4,13 +4,9 @@ import "p5/lib/addons/p5.sound";
 import ProgressWidget from "./ProgressWidget";
 import AmmoCount from "./AmmoCount";
 import HpBar from "./HpBar";
-import {
-  Typography,
-  makeStyles,
-  useTheme,
-  CircularProgress,
-} from "@material-ui/core";
+import { Typography, makeStyles, CircularProgress } from "@material-ui/core";
 import Controls from "./Controls";
+import MoveMouseInfo from "./MoveMouseInfo";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -43,7 +39,11 @@ export default () => {
   const [overlayOpacity, setOverlayOpacity] = useState(0);
   const [reloadingIndicator, setReloadingIndicator] = useState(false);
 
-  const theme = useTheme();
+  // Audio can't play without initial mouse movement
+  const [mouseMoved, setMouseMoved] = useState(false);
+  const mouseJustMovedInitialFrame = useRef(false);
+  const loadingAfterMouseMove = useRef(false);
+
   const classes = useStyles();
 
   const bullets = useRef([]);
@@ -71,6 +71,9 @@ export default () => {
 
   useEffect(() => {
     const mouseMovementHandler = (e) => {
+      if (!mouseMoved) {
+        setMouseMoved(true);
+      }
       mousePosition.current.X = e.clientX;
       mousePosition.current.Y = e.clientY;
     };
@@ -79,6 +82,65 @@ export default () => {
     return () =>
       document.removeEventListener("mousemove", mouseMovementHandler);
   }, []);
+
+  const img = useRef();
+  const background = useRef();
+
+  const firingSound = useRef();
+  const cooldownMusic = useRef();
+  const reloadSound = useRef();
+
+  const zombieHit1 = useRef();
+  const zombieHit2 = useRef();
+  const zombieHit3 = useRef();
+
+  const zombieShot = useRef();
+  const zombieDead = useRef();
+
+  const waveMusic = useRef();
+
+  const preload = (p5) => {
+    firingSound.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/shot.wav"
+    );
+
+    cooldownMusic.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/cooldown.mp3"
+    );
+
+    reloadSound.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/reload.wav"
+    );
+
+    zombieHit1.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/Zombie_hit_1.wav"
+    );
+
+    zombieHit2.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/Zombie_hit_2.wav"
+    );
+
+    zombieHit3.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/Zombie_hit_3.wav"
+    );
+
+    waveMusic.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/wave.mp3"
+    );
+
+    zombieShot.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/Zombie_shot.wav"
+    );
+
+    zombieDead.current = p5.loadSound(
+      process.env.PUBLIC_URL + "/sounds/Zombie_dead.wav"
+    );
+
+    img.current = p5.loadImage(process.env.PUBLIC_URL + "/img/map.png");
+    background.current = p5.loadImage(
+      process.env.PUBLIC_URL + "/img/star-background.jpg"
+    );
+  };
 
   function movement(p5) {
     let moreThanOneKeyPressed = false;
@@ -348,6 +410,26 @@ export default () => {
   }
 
   function startCooldown() {
+    if (gameOverMode.current) {
+      setTotalAmmoCount(90);
+      setCurrentAmmoInMagazine(30);
+      dispatchMessage("Wave 1", "slow");
+      setWaveCounter(1);
+      setTimerInSeconds(10);
+      setHp(100);
+      setTimeout(startWave, 10000);
+    } else {
+      setTotalAmmoCount(60 + (waveCounter + 1) * 30);
+      setCurrentAmmoInMagazine(30);
+      setWaveCounter((prev) => {
+        dispatchMessage(`Wave ${prev + 1}`, "slow");
+        return prev + 1;
+      });
+      setTimerInSeconds(10);
+      setHp(100);
+      setTimeout(startWave, 10000);
+    }
+
     frameCounter.current = 0;
     waveMusic.current.stop();
     cooldownMusic.current.play();
@@ -358,16 +440,6 @@ export default () => {
     zombies.current = [];
     zombiesSpawningEnabled.current = false;
     zombiesSpawnIntervalInSeconds.current = 10000 / (waveCounter * 5000 + 5000);
-
-    setTotalAmmoCount(60 + (waveCounter + 1) * 30);
-    setCurrentAmmoInMagazine(30);
-    setWaveCounter((prev) => {
-      dispatchMessage(`Wave ${prev + 1}`, "slow");
-      return prev + 1;
-    });
-    setTimerInSeconds(10);
-    setHp(100);
-    setTimeout(startWave, 10000);
   }
 
   function fireBullets(p5) {
@@ -440,7 +512,7 @@ export default () => {
     }
   }
 
-  function checkBulletCollision(p5) {
+  function checkBulletCollision() {
     let i = 0;
     while (i < zombies.current.length) {
       const zombie = zombies.current[i];
@@ -458,20 +530,21 @@ export default () => {
           zombieShot.current.play();
           zombie.health -= 34;
 
-          if (zombie.health < 0) {
-            zombieDead.current.play();
-            zombies.current.splice(i, 1);
-          }
-
           bullets.current.splice(j, 1);
+        } else {
+          j++;
         }
-        j++;
       }
-      i++;
+      if (zombie.health < 0) {
+        zombieDead.current.play();
+        zombies.current.splice(i, 1);
+      } else {
+        i++;
+      }
     }
   }
 
-  function checkDamage(p5) {
+  function checkDamage() {
     let i = 0;
     while (i < zombies.current.length) {
       const zombie = zombies.current[i];
@@ -502,8 +575,10 @@ export default () => {
         }
 
         if (hp - 1 / 4 <= 0) {
-          gameOverMode.current = true;
-          gameOver();
+          if (!gameOverMode.current) {
+            gameOverMode.current = true;
+            gameOver();
+          }
         }
       }
 
@@ -529,11 +604,6 @@ export default () => {
       Math.floor(window.innerWidth / 2),
       Math.floor(window.innerHeight / 2)
     );
-    setReloadingIndicator(true);
-    setTimeout(() => {
-      setReloadingIndicator(false);
-      startCooldown();
-    }, 3000);
   };
 
   const drawMap = (p5) => {
@@ -564,117 +634,11 @@ export default () => {
     );
   };
 
-  const draw = (p5) => {
-    if (!gameOverMode.current) {
-      framesSinceLastZombieSound.current++;
-      timeSinceLastBullet.current++;
-      mouseDown.current && fireBullets(p5);
-
-      if (frameCounter.current % FRAME_RATE == 0) {
-        setTimerInSeconds((prev) => prev - 1);
-      }
-
-      if (firingEnabled.current) {
-        if (p5.keyIsDown(82)) {
-          firingEnabled.current = false;
-          initializeReloading();
-        }
-      }
-
-      if (
-        timeWhenLastZombieSpawned.current - timerInSeconds >
-        zombiesSpawnIntervalInSeconds.current
-      ) {
-        spawnZombie();
-      }
-
-      frameCounter.current++;
-
-      p5.background(0);
-      movement(p5);
-      drawMap(p5);
-      drawPlayer(p5);
-      moveZombiesToPlayer();
-
-      if (bullets.current !== undefined && bullets.current.length > 0) {
-        drawBullets(p5);
-      }
-
-      if (zombies.current !== undefined && zombies.current.length > 0) {
-        drawZombie(p5);
-      }
-
-      checkBulletCollision(p5);
-      checkDamage(p5);
-      drawCursor(p5);
-    }
-  };
-
-  const img = useRef();
-  const background = useRef();
-
-  const firingSound = useRef();
-  const cooldownMusic = useRef();
-  const reloadSound = useRef();
-
-  const zombieHit1 = useRef();
-  const zombieHit2 = useRef();
-  const zombieHit3 = useRef();
-
-  const zombieShot = useRef();
-  const zombieDead = useRef();
-
-  const waveMusic = useRef();
-
-  const preload = (p5) => {
-    firingSound.current = p5.loadSound(
-      process.env.PUBLIC_URL + "/sounds/shot.wav"
-    );
-
-    cooldownMusic.current = p5.loadSound(
-      process.env.PUBLIC_URL + "/sounds/cooldown.mp3"
-    );
-
-    reloadSound.current = p5.loadSound(
-      process.env.PUBLIC_URL + "/sounds/reload.wav"
-    );
-
-    zombieHit1.current = p5.loadSound(
-      process.env.PUBLIC_URL + "/sounds/Zombie_hit_1.wav"
-    );
-
-    zombieHit2.current = p5.loadSound(
-      process.env.PUBLIC_URL + "/sounds/Zombie_hit_2.wav"
-    );
-
-    zombieHit3.current = p5.loadSound(
-      process.env.PUBLIC_URL + "/sounds/Zombie_hit_3.wav"
-    );
-
-    waveMusic.current = p5.loadSound(
-      process.env.PUBLIC_URL + "/sounds/wave.mp3"
-    );
-
-    zombieShot.current = p5.loadSound(
-      process.env.PUBLIC_URL + "/sounds/Zombie_shot.wav"
-    );
-
-    zombieDead.current = p5.loadSound(
-      process.env.PUBLIC_URL + "/sounds/Zombie_dead.wav"
-    );
-
-    img.current = p5.loadImage(process.env.PUBLIC_URL + "/img/map.png");
-    background.current = p5.loadImage(
-      process.env.PUBLIC_URL + "/img/star-background.jpg"
-    );
-  };
-
   const gameOver = () => {
     dispatchMessage("Game over :(", "slow");
     setTimeout(() => {
-      setWaveCounter(0);
-      gameOverMode.current = false;
       startCooldown();
+      gameOverMode.current = false;
     }, 6000);
   };
 
@@ -712,6 +676,56 @@ export default () => {
     }
   };
 
+  const draw = (p5) => {
+    if (!gameOverMode.current && mouseMoved) {
+      if (!mouseJustMovedInitialFrame.current) {
+        if (!loadingAfterMouseMove.current) {
+          loadingAfterMouseMove.current = true;
+          setTimeout(() => {
+            mouseJustMovedInitialFrame.current = true;
+            startCooldown();
+          }, 1500);
+        }
+      } else {
+        framesSinceLastZombieSound.current++;
+        timeSinceLastBullet.current++;
+        mouseDown.current && fireBullets(p5);
+
+        if (frameCounter.current % FRAME_RATE == 0) {
+          setTimerInSeconds((prev) => prev - 1);
+        }
+
+        if (firingEnabled.current) {
+          if (p5.keyIsDown(82)) {
+            firingEnabled.current = false;
+            initializeReloading();
+          }
+        }
+
+        if (
+          timeWhenLastZombieSpawned.current - timerInSeconds >
+          zombiesSpawnIntervalInSeconds.current
+        ) {
+          spawnZombie();
+        }
+
+        frameCounter.current++;
+
+        p5.background(0);
+        movement(p5);
+        drawMap(p5);
+        drawPlayer(p5);
+        moveZombiesToPlayer();
+
+        drawBullets(p5);
+        drawZombie(p5);
+        checkBulletCollision();
+        checkDamage();
+        drawCursor(p5);
+      }
+    }
+  };
+
   return (
     <>
       <ProgressWidget
@@ -739,6 +753,7 @@ export default () => {
           left: "calc(50vw - 150px)",
         }}
       />
+      <Controls />
       <div
         style={{
           position: "fixed",
@@ -765,7 +780,7 @@ export default () => {
       >
         {message}
       </Typography>
-      <Controls />
+      {mouseMoved || <MoveMouseInfo />}
     </>
   );
 };

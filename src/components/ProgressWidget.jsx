@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import { makeStyles, Typography, useTheme, Paper } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({

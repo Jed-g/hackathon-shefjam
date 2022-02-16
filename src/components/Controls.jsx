@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import { makeStyles, Typography, useTheme, Paper } from "@material-ui/core";
 
 const useStyles = makeStyles((theme) => ({
@@ -10,7 +10,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default ({ currentAmmoInMagazine, totalAmmoCount }) => {
+export default () => {
   const theme = useTheme();
   const classes = useStyles();
 
